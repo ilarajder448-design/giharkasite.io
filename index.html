@@ -45,6 +45,33 @@
             opacity: 0.9;
         }
         
+        .user-section {
+            padding: 15px 30px;
+            background: #f0f4ff;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, #4a00e0, #8e2de2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
         .upload-section {
             padding: 30px;
             text-align: center;
@@ -170,6 +197,13 @@
             margin-top: 5px;
         }
         
+        .file-author {
+            color: #8e2de2;
+            font-size: 0.8rem;
+            margin-top: 3px;
+            font-weight: 500;
+        }
+        
         .file-actions {
             display: flex;
             gap: 10px;
@@ -200,6 +234,10 @@
         .action-btn.delete {
             background: linear-gradient(90deg, #e00000, #ff5252);
             flex: 0.5;
+        }
+        
+        .action-btn.share {
+            background: linear-gradient(90deg, #00b09b, #96c93d);
         }
         
         .progress-bar {
@@ -265,6 +303,35 @@
             display: block;
         }
         
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4a00e0;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(150%);
+            transition: transform 0.3s;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .refresh-btn {
+            background: #4a00e0;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -285,6 +352,12 @@
             .file-list {
                 grid-template-columns: 1fr;
             }
+            
+            .user-section {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -292,8 +365,19 @@
     <div class="container">
         <header>
             <h1>Файлообменник</h1>
-            <p class="subtitle">Загружайте файлы и делитесь ими с другими</p>
+            <p class="subtitle">Загружайте файлы и делитесь ими с другими пользователями</p>
         </header>
+        
+        <div class="user-section">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div>
+                    <div>Пользователь: <span id="userName">Гость</span></div>
+                    <div style="font-size: 0.8rem; color: #666;">ID: <span id="userId">-</span></div>
+                </div>
+            </div>
+            <button class="refresh-btn" id="refreshBtn">Обновить файлы</button>
+        </div>
         
         <section class="upload-section">
             <h2>Загрузите ваши файлы</h2>
@@ -314,44 +398,66 @@
         
         <section class="files-section">
             <div class="tabs">
-                <div class="tab active" data-tab="my-files">Мои файлы</div>
-                <div class="tab" data-tab="shared-files">Общие файлы</div>
+                <div class="tab active" data-tab="all-files">Все файлы</div>
+                <div class="tab" data-tab="my-files">Мои файлы</div>
             </div>
             
-            <div class="tab-content active" id="my-files">
-                <h3 class="section-title">📂 Мои загруженные файлы</h3>
-                <div class="file-list" id="myFileList">
-                    <!-- Мои файлы будут добавляться сюда -->
+            <div class="tab-content active" id="all-files">
+                <h3 class="section-title">📂 Все общие файлы</h3>
+                <div class="file-list" id="allFileList">
+                    <!-- Все файлы будут добавляться сюда -->
                 </div>
             </div>
             
-            <div class="tab-content" id="shared-files">
-                <h3 class="section-title">👥 Файлы других пользователей</h3>
-                <div class="file-list" id="sharedFileList">
-                    <!-- Общие файлы будут добавляться сюда -->
+            <div class="tab-content" id="my-files">
+                <h3 class="section-title">👤 Мои загруженные файлы</h3>
+                <div class="file-list" id="myFileList">
+                    <!-- Мои файлы будут добавляться сюда -->
                 </div>
             </div>
         </section>
         
         <footer>
-            <p>© 2025 Файлообменник. Все файлы хранятся в вашем браузере.</p>
+            <p>© 2025 Файлообменник. Все файлы видны другим пользователям.</p>
         </footer>
+    </div>
+
+    <div class="notification" id="notification">
+        Новый файл загружен в общий доступ!
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
+            const allFileList = document.getElementById('allFileList');
             const myFileList = document.getElementById('myFileList');
-            const sharedFileList = document.getElementById('sharedFileList');
             const progressBar = document.getElementById('progressBar');
             const progress = document.getElementById('progress');
             const browseBtn = document.querySelector('.browse-btn');
             const tabs = document.querySelectorAll('.tab');
             const tabContents = document.querySelectorAll('.tab-content');
+            const userName = document.getElementById('userName');
+            const userId = document.getElementById('userId');
+            const userAvatar = document.getElementById('userAvatar');
+            const refreshBtn = document.getElementById('refreshBtn');
+            const notification = document.getElementById('notification');
             
-            // Загружаем файлы из localStorage при загрузке страницы
+            // Генерируем уникального пользователя
+            let currentUser = generateUser();
+            userName.textContent = currentUser.name;
+            userId.textContent = currentUser.id;
+            userAvatar.textContent = currentUser.name.charAt(0);
+            userAvatar.style.background = currentUser.color;
+            
+            // Загружаем файлы из общего хранилища при загрузке страницы
             loadFiles();
+            
+            // Обработчик для кнопки обновления
+            refreshBtn.addEventListener('click', function() {
+                loadFiles();
+                showNotification('Файлы обновлены');
+            });
             
             // Обработчик для кнопки выбора файлов
             browseBtn.addEventListener('click', function() {
@@ -423,61 +529,37 @@
                 
                 // Добавляем файлы в список
                 for (let i = 0; i < files.length; i++) {
-                    addFileToList(files[i]);
+                    addFileToStorage(files[i]);
                 }
                 
-                // Сохраняем файлы в localStorage
-                saveFiles();
+                // Перезагружаем список файлов
+                loadFiles();
+                
+                // Показываем уведомление
+                showNotification('Файлы загружены в общий доступ!');
             }
             
-            // Функция для добавления файла в список
-            function addFileToList(file) {
-                const fileItem = document.createElement('div');
-                fileItem.className = 'file-item';
-                
-                const fileSize = formatFileSize(file.size);
-                const uploadDate = new Date().toLocaleDateString('ru-RU');
+            // Функция для добавления файла в хранилище
+            function addFileToStorage(file) {
+                const fileSize = file.size;
+                const uploadDate = new Date().toLocaleString('ru-RU');
                 const fileId = Date.now() + '-' + Math.random().toString(36).substr(2, 9);
                 
-                fileItem.innerHTML = `
-                    <div class="file-info">
-                        <div class="file-icon">${getFileIcon(file.name)}</div>
-                        <div class="file-details">
-                            <div class="file-name">${file.name}</div>
-                            <div class="file-size">${fileSize}</div>
-                            <div class="file-date">Загружен: ${uploadDate}</div>
-                        </div>
-                    </div>
-                    <div class="file-actions">
-                        <button class="action-btn download-btn" data-file-id="${fileId}">
-                            <span>⬇️</span> Скачать
-                        </button>
-                        <button class="action-btn delete delete-btn" data-file-id="${fileId}">
-                            <span>🗑️</span>
-                        </button>
-                    </div>
-                `;
+                // Сохраняем информацию о файле в общее хранилище
+                const fileInfo = {
+                    id: fileId,
+                    name: file.name,
+                    size: fileSize,
+                    type: file.type,
+                    uploadDate: uploadDate,
+                    author: currentUser.name,
+                    authorId: currentUser.id,
+                    authorColor: currentUser.color
+                };
                 
-                myFileList.appendChild(fileItem);
-                
-                // Обработчик для кнопки удаления
-                const deleteBtn = fileItem.querySelector('.delete-btn');
-                deleteBtn.addEventListener('click', function() {
-                    if (confirm(`Удалить файл "${file.name}"?`)) {
-                        fileItem.remove();
-                        removeFileFromStorage(fileId);
-                        saveFiles();
-                    }
-                });
-                
-                // Обработчик для кнопки скачивания
-                const downloadBtn = fileItem.querySelector('.download-btn');
-                downloadBtn.addEventListener('click', function() {
-                    downloadFile(file, fileId);
-                });
-                
-                // Сохраняем информацию о файле
-                saveFileInfo(file, fileId, uploadDate);
+                const allFiles = JSON.parse(localStorage.getItem('allFiles') || '[]');
+                allFiles.push(fileInfo);
+                localStorage.setItem('allFiles', JSON.stringify(allFiles));
             }
             
             // Функция для получения иконки файла по его расширению
@@ -519,156 +601,120 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
             }
             
-            // Функция для сохранения информации о файле
-            function saveFileInfo(file, fileId, uploadDate) {
-                const fileInfo = {
-                    id: fileId,
-                    name: file.name,
-                    size: file.size,
-                    type: file.type,
-                    uploadDate: uploadDate,
-                    data: null
-                };
-                
-                // В реальном приложении здесь будет код для загрузки на сервер
-                // Для демонстрации сохраняем только информацию о файле
-                
-                const myFiles = JSON.parse(localStorage.getItem('myFiles') || '[]');
-                myFiles.push(fileInfo);
-                localStorage.setItem('myFiles', JSON.stringify(myFiles));
-                
-                // Также добавляем в общий список (в реальном приложении это делалось бы на сервере)
-                const sharedFiles = JSON.parse(localStorage.getItem('sharedFiles') || '[]');
-                sharedFiles.push({
-                    ...fileInfo,
-                    uploadedBy: 'Пользователь ' + Math.floor(Math.random() * 1000)
-                });
-                localStorage.setItem('sharedFiles', JSON.stringify(sharedFiles));
-            }
-            
-            // Функция для сохранения файлов в localStorage
-            function saveFiles() {
-                // В реальном приложении здесь будет код для сохранения на сервере
-                console.log('Файлы сохранены');
-            }
-            
             // Функция для загрузки файлов из localStorage
             function loadFiles() {
+                // Загружаем все файлы
+                const allFiles = JSON.parse(localStorage.getItem('allFiles') || '[]');
+                
+                if (allFiles.length === 0) {
+                    allFileList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📁</div>
+                            <p>Пока нет загруженных файлов</p>
+                            <p style="margin-top: 10px;">Будьте первым, кто загрузит файл!</p>
+                        </div>
+                    `;
+                } else {
+                    allFileList.innerHTML = '';
+                    allFiles.forEach(fileInfo => {
+                        const fileItem = createFileItem(fileInfo, false);
+                        allFileList.appendChild(fileItem);
+                    });
+                }
+                
                 // Загружаем мои файлы
-                const myFiles = JSON.parse(localStorage.getItem('myFiles') || '[]');
-                const sharedFiles = JSON.parse(localStorage.getItem('sharedFiles') || '[]');
+                const myFiles = allFiles.filter(file => file.authorId === currentUser.id);
                 
                 if (myFiles.length === 0) {
                     myFileList.innerHTML = `
                         <div class="empty-state">
-                            <div class="empty-icon">📁</div>
+                            <div class="empty-icon">👤</div>
                             <p>У вас пока нет загруженных файлов</p>
                         </div>
                     `;
                 } else {
                     myFileList.innerHTML = '';
                     myFiles.forEach(fileInfo => {
-                        const fileItem = document.createElement('div');
-                        fileItem.className = 'file-item';
-                        
-                        fileItem.innerHTML = `
-                            <div class="file-info">
-                                <div class="file-icon">${getFileIcon(fileInfo.name)}</div>
-                                <div class="file-details">
-                                    <div class="file-name">${fileInfo.name}</div>
-                                    <div class="file-size">${formatFileSize(fileInfo.size)}</div>
-                                    <div class="file-date">Загружен: ${fileInfo.uploadDate}</div>
-                                </div>
-                            </div>
-                            <div class="file-actions">
-                                <button class="action-btn download-btn" data-file-id="${fileInfo.id}">
-                                    <span>⬇️</span> Скачать
-                                </button>
-                                <button class="action-btn delete delete-btn" data-file-id="${fileInfo.id}">
-                                    <span>🗑️</span>
-                                </button>
-                            </div>
-                        `;
-                        
+                        const fileItem = createFileItem(fileInfo, true);
                         myFileList.appendChild(fileItem);
-                        
-                        // Обработчики событий
-                        const deleteBtn = fileItem.querySelector('.delete-btn');
-                        deleteBtn.addEventListener('click', function() {
-                            if (confirm(`Удалить файл "${fileInfo.name}"?`)) {
-                                fileItem.remove();
-                                removeFileFromStorage(fileInfo.id);
-                                saveFiles();
-                            }
-                        });
-                        
-                        const downloadBtn = fileItem.querySelector('.download-btn');
-                        downloadBtn.addEventListener('click', function() {
-                            // В реальном приложении здесь будет код для скачивания с сервера
-                            alert(`Файл "${fileInfo.name}" будет скачан`);
-                        });
+                    });
+                }
+            }
+            
+            // Функция для создания элемента файла
+            function createFileItem(fileInfo, isMyFile) {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-icon">${getFileIcon(fileInfo.name)}</div>
+                        <div class="file-details">
+                            <div class="file-name">${fileInfo.name}</div>
+                            <div class="file-size">${formatFileSize(fileInfo.size)}</div>
+                            <div class="file-date">Загружен: ${fileInfo.uploadDate}</div>
+                            <div class="file-author" style="color: ${fileInfo.authorColor}">Автор: ${fileInfo.author}</div>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        <button class="action-btn download-btn" data-file-id="${fileInfo.id}">
+                            <span>⬇️</span> Скачать
+                        </button>
+                        ${isMyFile ? `<button class="action-btn delete delete-btn" data-file-id="${fileInfo.id}">
+                            <span>🗑️</span> Удалить
+                        </button>` : ''}
+                    </div>
+                `;
+                
+                // Обработчик для кнопки удаления (только для моих файлов)
+                if (isMyFile) {
+                    const deleteBtn = fileItem.querySelector('.delete-btn');
+                    deleteBtn.addEventListener('click', function() {
+                        if (confirm(`Удалить файл "${fileInfo.name}"?`)) {
+                            removeFileFromStorage(fileInfo.id);
+                            loadFiles();
+                            showNotification('Файл удален');
+                        }
                     });
                 }
                 
-                // Загружаем общие файлы
-                if (sharedFiles.length === 0) {
-                    sharedFileList.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-icon">👥</div>
-                            <p>Пока нет общих файлов от других пользователей</p>
-                        </div>
-                    `;
-                } else {
-                    sharedFileList.innerHTML = '';
-                    sharedFiles.forEach(fileInfo => {
-                        const fileItem = document.createElement('div');
-                        fileItem.className = 'file-item';
-                        
-                        fileItem.innerHTML = `
-                            <div class="file-info">
-                                <div class="file-icon">${getFileIcon(fileInfo.name)}</div>
-                                <div class="file-details">
-                                    <div class="file-name">${fileInfo.name}</div>
-                                    <div class="file-size">${formatFileSize(fileInfo.size)}</div>
-                                    <div class="file-date">Загружен: ${fileInfo.uploadDate}</div>
-                                    <div class="file-date">Автор: ${fileInfo.uploadedBy}</div>
-                                </div>
-                            </div>
-                            <div class="file-actions">
-                                <button class="action-btn download-btn" data-file-id="${fileInfo.id}">
-                                    <span>⬇️</span> Скачать
-                                </button>
-                            </div>
-                        `;
-                        
-                        sharedFileList.appendChild(fileItem);
-                        
-                        // Обработчик для кнопки скачивания
-                        const downloadBtn = fileItem.querySelector('.download-btn');
-                        downloadBtn.addEventListener('click', function() {
-                            // В реальном приложении здесь будет код для скачивания с сервера
-                            alert(`Файл "${fileInfo.name}" будет скачан`);
-                        });
-                    });
-                }
+                // Обработчик для кнопки скачивания
+                const downloadBtn = fileItem.querySelector('.download-btn');
+                downloadBtn.addEventListener('click', function() {
+                    // В реальном приложении здесь будет код для скачивания с сервера
+                    showNotification(`Начато скачивание: ${fileInfo.name}`);
+                });
+                
+                return fileItem;
             }
             
             // Функция для удаления файла из хранилища
             function removeFileFromStorage(fileId) {
-                let myFiles = JSON.parse(localStorage.getItem('myFiles') || '[]');
-                myFiles = myFiles.filter(file => file.id !== fileId);
-                localStorage.setItem('myFiles', JSON.stringify(myFiles));
-                
-                let sharedFiles = JSON.parse(localStorage.getItem('sharedFiles') || '[]');
-                sharedFiles = sharedFiles.filter(file => file.id !== fileId);
-                localStorage.setItem('sharedFiles', JSON.stringify(sharedFiles));
+                let allFiles = JSON.parse(localStorage.getItem('allFiles') || '[]');
+                allFiles = allFiles.filter(file => file.id !== fileId);
+                localStorage.setItem('allFiles', JSON.stringify(allFiles));
             }
             
-            // Функция для скачивания файла
-            function downloadFile(file, fileId) {
-                // В реальном приложении здесь будет код для скачивания с сервера
-                // Для демонстрации просто показываем сообщение
-                alert(`Файл "${file.name}" будет скачан`);
+            // Функция для генерации случайного пользователя
+            function generateUser() {
+                const names = ['Алексей', 'Мария', 'Иван', 'Ольга', 'Дмитрий', 'Анна', 'Сергей', 'Елена', 'Андрей', 'Наталья'];
+                const colors = ['#4a00e0', '#8e2de2', '#00b09b', '#96c93d', '#ff512f', '#f09819', '#6a11cb', '#2575fc', '#ee0979', '#ff6a00'];
+                
+                return {
+                    id: Math.random().toString(36).substr(2, 9),
+                    name: names[Math.floor(Math.random() * names.length)],
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                };
+            }
+            
+            // Функция для показа уведомления
+            function showNotification(message) {
+                notification.textContent = message;
+                notification.classList.add('show');
+                
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
             }
             
             // Обработчики для вкладок
@@ -685,6 +731,13 @@
                     document.getElementById(tabId).classList.add('active');
                 });
             });
+            
+            // Имитация получения обновлений от других пользователей
+            setInterval(() => {
+                // В реальном приложении здесь будет запрос к серверу
+                // Для демонстрации просто обновляем список каждые 10 секунд
+                loadFiles();
+            }, 10000);
         });
     </script>
 </body>
