@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giharka - Главное и Моды</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #1a1a2e;
+            color: #e6e6e6;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        h1 {
+            color: #4cc9f0;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background-color: #16213e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .tab-button {
+            padding: 15px 30px;
+            background-color: transparent;
+            border: none;
+            color: #e6e6e6;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            text-align: center;
+        }
+        
+        .tab-button:hover {
+            background-color: #0f3460;
+        }
+        
+        .tab-button.active {
+            background-color: #4cc9f0;
+            color: #1a1a2e;
+            font-weight: bold;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+            background-color: #16213e;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            min-height: 400px;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .card {
+            background-color: #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            color: #4cc9f0;
+            margin-bottom: 10px;
+        }
+        
+        .card p {
+            color: #b8b8b8;
+        }
+        
+        .youtube-section {
+            text-align: center;
+            margin: 30px 0;
+        }
+        
+        .youtube-link {
+            display: inline-block;
+            margin-top: 15px;
+            transition: transform 0.3s ease;
+        }
+        
+        .youtube-link:hover {
+            transform: scale(1.05);
+        }
+        
+        .youtube-icon {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .mod-list {
+            margin-top: 20px;
+        }
+        
+        .mod-item {
+            background-color: #0f3460;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .mod-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .mod-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #4cc9f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+        
+        .mod-info {
+            flex: 1;
+        }
+        
+        .mod-info h3 {
+            color: #4cc9f0;
+            margin-bottom: 5px;
+        }
+        
+        .mod-info p {
+            color: #b8b8b8;
+            font-size: 0.9rem;
+        }
+        
+        /* Убран старый стиль кнопки скачивания */
+        .download-btn {
+            display: none;
+        }
+        
+        /* Новый стиль иконки скачивания */
+        .download-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 50px;
+            height: 50px;
+            background-color: #4cc9f0;
+            border-radius: 8px;
+            color: #1a1a2e;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            margin-left: 15px;
+            flex-shrink: 0;
+        }
+        
+        .download-icon:hover {
+            background-color: #3aa8d8;
+            transform: scale(1.1);
+        }
+        
+        .download-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px 0;
+            color: #777;
+            border-top: 1px solid #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Giharka</h1>
+        </header>
+        
+        <div class="tabs">
+            <button class="tab-button active" data-tab="main">Главное</button>
+            <button class="tab-button" data-tab="mods">Моды</button>
+        </div>
+        
+        <div class="tab-content active" id="main">
+            <div class="youtube-section">
+                <h2>Стримы идут тут:</h2>
+                <a href="https://www.youtube.com/@giharka9287" class="youtube-link">
+                    <svg class="youtube-icon" viewBox="0 0 24 24" fill="red">
+                        <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="mods">
+            <h2>Моды для Giharka</h2>
+            <p>Здесь представлены все доступные моды для проекта Giharka.</p>
+            
+            <div class="mod-list">
+                <div class="mod-item">
+                    <div class="mod-icon">!</div>
+                    <div class="mod-info">
+                        <h3>Круг реального разброса орудия</h3>
+                        <p>Показывает реальный круг разброса.</p>
+                    </div>
+                    <!-- Новая иконка скачивания -->
+                    <a href="F:\photoshop\Круг реального разброса орудия 1.38.0.0 (06.11.2025).zip" 
+                       download="Круг реального разброса орудия 1.38.0.0 (06.11.2025).zip" 
+                       class="download-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                    </a>
+                </div>
+                
+                <div class="mod-item">
+                    <div class="mod-icon">UI</div>
+                    <div class="mod-info">
+                        <h3>Улучшенный интерфейс</h3>
+                        <p>Переработанный пользовательский интерфейс с новыми функциями.</p>
+                    </div>
+                    <!-- Новая иконка скачивания -->
+                    <a href="C:\Users\ModPack_giharka__1.38.0.0_Setup.exe" 
+                       download="ModPack_giharka__1.38.0.0_Setup.exe" 
+                       class="download-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                    </a>
+                </div>
+                
+                <div class="mod-item">
+                    <div class="mod-icon">NEW</div>
+                    <div class="mod-info">
+                        <h3>Дополнительный контент</h3>
+                        <p>Новые уровни, персонажи и игровые механики.</p>
+                    </div>
+                    <!-- Новая иконка скачивания -->
+                    <a href="#" class="download-icon">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2025 Giharka. Все права защищены.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Убираем активный класс у всех кнопок и контента
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Добавляем активный класс к нажатой кнопке
+                    this.classList.add('active');
+                    
+                    // Находим соответствующий контент и делаем его активным
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId).classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
